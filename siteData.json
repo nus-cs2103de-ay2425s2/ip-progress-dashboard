@@ -2,10 +2,10 @@
   "enableSearch": true,
   "pages": [
     {
-      "src": "contents/participation.md",
-      "title": "Participation dashboard",
+      "src": "contents/ip-progress.md",
+      "title": "CS2103DE Software Engineering iP Progress Dashboard",
       "headings": {
-        "participation-dashboard": "Participation dashboard"
+        "cs2103de-software-engineering-ip-progress-dashboard": "CS2103DE Software Engineering iP Progress Dashboard"
       },
       "headingKeywords": {}
     }
