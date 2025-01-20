@@ -1,9 +1,9 @@
 <frontmatter>
-title: "iP progress dashboard"
+title: "CS2103DE Software Engineering iP Progress Dashboard"
 </frontmatter>
 <p/>
 
-<h1 class="display-4">iP progress dashboard</h1>
+<h1 class="display-4">CS2103DE Software Engineering iP Progress Dashboard</h1>
 
 <box>
 
