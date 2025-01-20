@@ -10,18 +10,15 @@
     "_markbind/logs/*",
     "_site/*",
     "site.json",
-    "*.md",
     "*.njk",
     ".git/*"
   ],
   "pages": [
     {
-      "src": "contents/ip-progress.md",
-      "title": "CS2103DE Software Engineering iP Progress Dashboard",
+      "src": "index.md",
       "glob": false
     }
   ],
-  "pagesExclude": ["**/*-fragment.md"],
   "plugins": ["filterTags"],
   "pluginsContext": {
     "filterTags" : {
