@@ -2,7 +2,7 @@
   "enableSearch": true,
   "pages": [
     {
-      "src": "contents/ip-progress.md",
+      "src": "index.md",
       "title": "CS2103DE Software Engineering iP Progress Dashboard",
       "headings": {
         "cs2103de-software-engineering-ip-progress-dashboard": "CS2103DE Software Engineering iP Progress Dashboard"
