@@ -56,4 +56,4 @@ Try these steps, and wait till the next dashboard update to see if they turn gre
 </panel>
 </box>
 
-<include src="contents/cs2103/ip-progress-table-fragment.md" trim="false" optional="false" heading="none" />
+<include src="contents/cs2103/ip-progress-table-fragment.md" trim="false" optional="false" heading="none" omit-overall-progress="true" />
