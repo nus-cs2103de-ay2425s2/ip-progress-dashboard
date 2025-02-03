@@ -1,5 +1,7 @@
 <frontmatter>
   title: "CS2103DE Software Engineering iP Progress Dashboard"
+  variables:
+    pageTime: "{{timestamp}}"
 </frontmatter>
 
 <h1 class="display-4">CS2103DE Software Engineering iP Progress Dashboard</h1>
@@ -17,7 +19,7 @@
   * <span class="badge bg-secondary">!~~ABC~~</span> : optional item due soon, not done yet.
 * If you have queries about the data shown in this page, please email `pranat@nus.edu.sg` or `zikun@nus.edu.sg`.
 * This dashboard is **updated {{ "every 2-3 days" if tic4002 else "daily" }}**.
-* Last updated: {{ timestamp }}
+* Last updated: {{ pageTime }}
 * **Troubleshooting:**
 
 <panel type="seamless" header="Why is an increment related to a _tag_ not green?">
@@ -54,4 +56,4 @@ Try these steps, and wait till the next dashboard update to see if they turn gre
 </panel>
 </box>
 
-<include src="contents/cs2103/ip-progress-table-fragment.md" no-panel />
+<include src="contents/cs2103/ip-progress-table-fragment.md" trim="false" optional="false" heading="none" />
