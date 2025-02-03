@@ -157,6 +157,16 @@ th, td {
 }
 
 /* Hide overall progress panel */
-panel[header*="Overall progress"] {
+[header*="Overall progress"],
+div:has(> [header*="Overall progress"]),
+div[header^="Overall progress"],
+.panel-heading:has(> span:contains("Overall progress")),
+div[aria-label*="Overall progress"] {
+    display: none !important;
+}
+
+/* Also hide the text-based version */
+div:has(> span:contains("Overall progress")),
+div:has(> a:contains("Overall progress")) {
     display: none !important;
 }
