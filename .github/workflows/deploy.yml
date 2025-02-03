@@ -27,6 +27,11 @@ jobs:
       - name: Build site
         run: markbind build
         
+      - name: Configure Git
+        run: |
+          git config --global user.name "Zikun Zhu"
+          git config --global user.email "zhu.zikun@u.nus.edu"
+        
       - name: Deploy to GitHub Pages
         run: markbind deploy -n
         env:
