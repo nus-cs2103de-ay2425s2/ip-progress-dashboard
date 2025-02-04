@@ -34,8 +34,8 @@ def should_show_task(task_info):
     
     # Show tasks that are:
     # 1. Due before today (past tasks)
-    # 2. Due within the next 7 days (upcoming tasks)
-    return due_date <= now + timedelta(days=7)
+    # 2. Due within the next 5 days (upcoming tasks)
+    return due_date <= now + timedelta(days=5)
 
 def get_badge_html(task_name, is_completed, task_info):
     now = datetime.now(pytz.timezone('Asia/Singapore'))
