@@ -43,15 +43,18 @@ def get_badge_html(task_name, is_completed, task_info):
     is_overdue = now > due_date
     is_optional = task_info['is_optional']
     
-    # Use actual completion status from CSV
-    is_completed = is_completed.strip() if isinstance(is_completed, str) else is_completed
+    # Clean up completion status and ensure it's treated as a string
+    is_completed = str(is_completed).strip() if is_completed is not None else '0'
     
     if is_completed == '1':
+        # Optional tasks use bg-info, required tasks use bg-success
         badge_class = 'bg-info' if is_optional else 'bg-success'
     else:
+        # Not completed tasks
         if is_overdue:
-            badge_class = 'bg-danger'
+            badge_class = 'bg-danger'  # Overdue tasks are red
         else:
+            # Optional tasks use bg-secondary, required tasks use bg-dark
             badge_class = 'bg-secondary' if is_optional else 'bg-dark'
     
     text = task_name if is_completed == '1' else f'!{task_name}'
@@ -74,32 +77,50 @@ def generate_progress_table(students, tasks):
 -----------------------------------------------------|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------'''
     
     output = [header]
-    task_groups = defaultdict(list)
     
-    # Group tasks by type while maintaining original order
-    for task_name, info in tasks.items():
-        if should_show_task(info):
-            task_groups[info['type']].append((task_name, info))
+    # Create ordered lists for each type
+    weekly_tasks = []
+    increment_tasks = []
+    admin_tasks = []
+    
+    # First pass: collect tasks in original order from task_definitions.csv
+    with open('data/task_definitions.csv', 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            task_name = row['Task Name'].strip()
+            if task_name in tasks and should_show_task(tasks[task_name]):
+                task_info = tasks[task_name]
+                if task_info['type'] == 'Weekly':
+                    weekly_tasks.append((task_name, task_info))
+                elif task_info['type'] == 'Increment':
+                    increment_tasks.append((task_name, task_info))
+                elif task_info['type'] == 'Admin':
+                    admin_tasks.append((task_name, task_info))
     
     for student in students:
-        weekly_progress = []
-        increments = []
-        admin_tasks = []
+        weekly_badges = []
+        increment_badges = []
+        admin_badges = []
         
-        # Process tasks in original order within each type
-        for task_name, task_info in task_groups['Weekly']:
-            badge = get_badge_html(task_name, student[task_name], task_info)
-            weekly_progress.append(badge)
+        # Process Weekly tasks
+        for task_name, task_info in weekly_tasks:
+            if task_name in student:
+                badge = get_badge_html(task_name, student[task_name], task_info)
+                weekly_badges.append(badge)
         
-        for task_name, task_info in task_groups['Increment']:
-            badge = get_badge_html(task_name, student[task_name], task_info)
-            increments.append(badge)
+        # Process Increment tasks
+        for task_name, task_info in increment_tasks:
+            if task_name in student:
+                badge = get_badge_html(task_name, student[task_name], task_info)
+                increment_badges.append(badge)
         
-        for task_name, task_info in task_groups['Admin']:
-            badge = get_badge_html(task_name, student[task_name], task_info)
-            admin_tasks.append(badge)
+        # Process Admin tasks
+        for task_name, task_info in admin_tasks:
+            if task_name in student:
+                badge = get_badge_html(task_name, student[task_name], task_info)
+                admin_badges.append(badge)
         
-        student_row = f"{student['Student ID']}|{''.join(weekly_progress)}|{''.join(increments)}|{''.join(admin_tasks)}"
+        student_row = f"{student['Student ID']}|{''.join(weekly_badges)}|{''.join(increment_badges)}|{''.join(admin_badges)}"
         output.append(student_row)
     
     return '\n'.join(output)
@@ -109,15 +130,22 @@ def main():
     tasks = read_task_definitions('data/task_definitions.csv')
     students = read_student_progress('data/student_progress.csv')
     
-    # Debug print task definitions
+    # Debug print task definitions and student progress
     print("\nTask Definitions loaded:")
-    for task_name, info in tasks.items():
-        if task_name == 'JAR released':
-            print(f"Found JAR released task:")
-            print(f"  Type: {info['type']}")
-            print(f"  Optional: {info['is_optional']}")
-            print(f"  Due Date: {info['due_date']}")
-            print(f"  Week: {info['week_number']}")
+    with open('data/task_definitions.csv', 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            task_name = row['Task Name'].strip()
+            if task_name in tasks:
+                info = tasks[task_name]
+                print(f"{task_name}: Week {info['week_number']}, Type: {info['type']}, Optional: {info['is_optional']}")
+    
+    print("\nChecking for undefined tasks in student progress:")
+    if students:
+        student = students[0]
+        for task_name in sorted(student.keys()):
+            if task_name not in tasks and task_name not in ['Full Name', 'Student ID']:
+                print(f"Warning: Task '{task_name}' in student progress but not in task definitions")
     
     # Generate the markdown content
     markdown_content = generate_progress_table(students, tasks)
