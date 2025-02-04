@@ -1,5 +1,5 @@
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 from collections import defaultdict
 
@@ -28,14 +28,29 @@ def read_student_progress(file_path):
         next(f)  # Skip the header row
         return list(csv.DictReader(f, fieldnames=headers))
 
+def should_show_task(task_info):
+    now = datetime.now(pytz.timezone('Asia/Singapore'))
+    due_date = task_info['due_date'].replace(tzinfo=pytz.timezone('Asia/Singapore'))
+    
+    # For testing: only show week 3 and 4 tasks
+    return task_info['week_number'] in [3, 4]
+    
+    # Actual logic (commented out for now):
+    # return due_date <= now + timedelta(days=7)
+
 def get_badge_html(task_name, is_completed, task_info):
     now = datetime.now(pytz.timezone('Asia/Singapore'))
     due_date = task_info['due_date'].replace(tzinfo=pytz.timezone('Asia/Singapore'))
     is_overdue = now > due_date
     is_optional = task_info['is_optional']
     
-    # Strip whitespace from completion value
-    is_completed = is_completed.strip() if isinstance(is_completed, str) else is_completed
+    # For testing: override completion status based on week number
+    if task_info['week_number'] == 3:
+        is_completed = '1'  # Mark all week 3 tasks as completed
+    elif task_info['week_number'] == 4:
+        is_completed = '0'  # Mark all week 4 tasks as not completed
+    else:
+        is_completed = is_completed.strip() if isinstance(is_completed, str) else is_completed
     
     # Debug print for JAR released task
     if task_name == 'JAR released':
@@ -62,7 +77,8 @@ def sort_tasks(tasks):
     # Create a dictionary to store tasks by type and week
     sorted_tasks = defaultdict(lambda: defaultdict(list))
     for task_name, info in tasks.items():
-        sorted_tasks[info['type']][info['week_number']].append((task_name, info))
+        if should_show_task(info):  # Only include tasks that should be shown
+            sorted_tasks[info['type']][info['week_number']].append((task_name, info))
     
     # For each type, sort by week and then by task name
     for task_type in sorted_tasks:
