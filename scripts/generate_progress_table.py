@@ -8,24 +8,41 @@ def read_task_definitions(file_path):
     with open(file_path, 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            tasks[row['Task Name']] = {
-                'type': row['Task Type'],
-                'is_optional': row['Is Optional'].lower() == 'true',
-                'due_date': datetime.strptime(row['Due Date'], '%Y-%m-%d %H:%M'),
-                'week_number': int(row['Week Number'])
+            # Strip whitespace from task name and all other fields
+            task_name = row['Task Name'].strip()
+            tasks[task_name] = {
+                'type': row['Task Type'].strip(),
+                'is_optional': row['Is Optional'].strip().lower() == 'true',
+                'due_date': datetime.strptime(row['Due Date'].strip(), '%Y-%m-%d %H:%M'),
+                'week_number': int(row['Week Number'].strip())
             }
     return tasks
 
 def read_student_progress(file_path):
     with open(file_path, 'r') as f:
         reader = csv.DictReader(f)
-        return list(reader)
+        # Convert to list and strip whitespace from all field names
+        headers = [h.strip() for h in reader.fieldnames]
+        # Create a new reader with cleaned headers
+        f.seek(0)
+        next(f)  # Skip the header row
+        return list(csv.DictReader(f, fieldnames=headers))
 
 def get_badge_html(task_name, is_completed, task_info):
     now = datetime.now(pytz.timezone('Asia/Singapore'))
     due_date = task_info['due_date'].replace(tzinfo=pytz.timezone('Asia/Singapore'))
     is_overdue = now > due_date
     is_optional = task_info['is_optional']
+    
+    # Strip whitespace from completion value
+    is_completed = is_completed.strip() if isinstance(is_completed, str) else is_completed
+    
+    # Debug print for JAR released task
+    if task_name == 'JAR released':
+        print(f"Processing JAR released task:")
+        print(f"  is_completed (raw): {is_completed}")
+        print(f"  is_optional: {is_optional}")
+        print(f"  is_overdue: {is_overdue}")
     
     if is_completed == '1':
         # Completed tasks
@@ -85,6 +102,11 @@ def generate_progress_table(students, tasks):
         # Process Admin tasks
         for week in sorted(sorted_tasks['Admin'].keys()):
             for task_name, task_info in sorted_tasks['Admin'][week]:
+                # Debug print for JAR released task
+                if task_name == 'JAR released':
+                    print(f"\nProcessing JAR released for student {student['Student ID']}:")
+                    print(f"  Value in CSV: {student[task_name]}")
+                
                 badge = get_badge_html(task_name, student[task_name], task_info)
                 admin_tasks.append(badge)
         
@@ -98,6 +120,16 @@ def main():
     # Read the CSV files
     tasks = read_task_definitions('data/task_definitions.csv')
     students = read_student_progress('data/student_progress.csv')
+    
+    # Debug print task definitions
+    print("\nTask Definitions loaded:")
+    for task_name, info in tasks.items():
+        if task_name == 'JAR released':
+            print(f"Found JAR released task:")
+            print(f"  Type: {info['type']}")
+            print(f"  Optional: {info['is_optional']}")
+            print(f"  Due Date: {info['due_date']}")
+            print(f"  Week: {info['week_number']}")
     
     # Generate the markdown content
     markdown_content = generate_progress_table(students, tasks)
