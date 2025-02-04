@@ -1,0 +1,111 @@
+import csv
+from datetime import datetime
+import pytz
+from collections import defaultdict
+
+def read_task_definitions(file_path):
+    tasks = {}
+    with open(file_path, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            tasks[row['Task Name']] = {
+                'type': row['Task Type'],
+                'is_optional': row['Is Optional'].lower() == 'true',
+                'due_date': datetime.strptime(row['Due Date'], '%Y-%m-%d %H:%M'),
+                'week_number': int(row['Week Number'])
+            }
+    return tasks
+
+def read_student_progress(file_path):
+    with open(file_path, 'r') as f:
+        reader = csv.DictReader(f)
+        return list(reader)
+
+def get_badge_html(task_name, is_completed, task_info):
+    now = datetime.now(pytz.timezone('Asia/Singapore'))
+    due_date = task_info['due_date'].replace(tzinfo=pytz.timezone('Asia/Singapore'))
+    is_overdue = now > due_date
+    is_optional = task_info['is_optional']
+    
+    if is_completed == '1':
+        # Completed tasks
+        badge_class = 'bg-info' if is_optional else 'bg-success'
+    else:
+        # Not completed tasks
+        if is_overdue:
+            badge_class = 'bg-danger'  # Red for overdue
+        else:
+            badge_class = 'bg-secondary' if is_optional else 'bg-dark'  # Gray for optional, black for required
+    
+    # For not completed tasks, strike through the text
+    text = task_name if is_completed == '1' else f'!{task_name}'
+    return f'<span class="badge {badge_class} me-1">{text}</span>'
+
+def sort_tasks(tasks):
+    # Create a dictionary to store tasks by type and week
+    sorted_tasks = defaultdict(lambda: defaultdict(list))
+    for task_name, info in tasks.items():
+        sorted_tasks[info['type']][info['week_number']].append((task_name, info))
+    
+    # For each type, sort by week and then by task name
+    for task_type in sorted_tasks:
+        for week in sorted_tasks[task_type]:
+            sorted_tasks[task_type][week].sort(key=lambda x: x[0])
+    
+    return sorted_tasks
+
+def generate_progress_table(students, tasks):
+    # Header template
+    header = '''%%[This page was ==last updated on **{{ timestamp }}**==]%%    
+
+<tooltip content="NUSNET (partial)">Student</tooltip>|<tooltip content="i.e., weeks in which some code was committed to the repo">Weekly progress</tooltip>|<tooltip content="i.e., iP increments as indicated by the git tags in your fork">Increments</tooltip>|<tooltip content="i.e., other iP-related admin tasks">Admin tasks</tooltip>
+-----------------------------------------------------|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------'''
+    
+    output = [header]
+    sorted_tasks = sort_tasks(tasks)
+    
+    for student in students:
+        # Initialize the three sections
+        weekly_progress = []
+        increments = []
+        admin_tasks = []
+        
+        # Process Weekly tasks
+        for week in sorted(sorted_tasks['Weekly'].keys()):
+            for task_name, task_info in sorted_tasks['Weekly'][week]:
+                badge = get_badge_html(task_name, student[task_name], task_info)
+                weekly_progress.append(badge)
+        
+        # Process Increment tasks
+        for week in sorted(sorted_tasks['Increment'].keys()):
+            for task_name, task_info in sorted_tasks['Increment'][week]:
+                badge = get_badge_html(task_name, student[task_name], task_info)
+                increments.append(badge)
+        
+        # Process Admin tasks
+        for week in sorted(sorted_tasks['Admin'].keys()):
+            for task_name, task_info in sorted_tasks['Admin'][week]:
+                badge = get_badge_html(task_name, student[task_name], task_info)
+                admin_tasks.append(badge)
+        
+        # Combine all sections into one row
+        student_row = f"{student['Student ID']}|{''.join(weekly_progress)}|{''.join(increments)}|{''.join(admin_tasks)}"
+        output.append(student_row)
+    
+    return '\n'.join(output)
+
+def main():
+    # Read the CSV files
+    tasks = read_task_definitions('data/task_definitions.csv')
+    students = read_student_progress('data/student_progress.csv')
+    
+    # Generate the markdown content
+    markdown_content = generate_progress_table(students, tasks)
+    
+    # Write to the output file
+    output_path = 'contents/cs2103/ip-progress-table-fragment.md'
+    with open(output_path, 'w') as f:
+        f.write(markdown_content)
+
+if __name__ == '__main__':
+    main() 

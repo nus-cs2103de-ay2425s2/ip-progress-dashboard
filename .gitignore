@@ -3,3 +3,4 @@ _markbind/logs/
 _site/
 debug.log
 node_modules/
+.DS_Store
