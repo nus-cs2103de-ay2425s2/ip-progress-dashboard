@@ -46,6 +46,10 @@ def get_badge_html(task_name, is_completed, task_info):
     # Clean up completion status and ensure it's treated as a string
     is_completed = str(is_completed).strip() if is_completed is not None else '0'
     
+    # If it's an optional task that's overdue and not completed, return empty string
+    if is_optional and is_overdue and is_completed != '1':
+        return ''
+    
     if is_completed == '1':
         # Optional tasks use bg-info, required tasks use bg-success
         badge_class = 'bg-info' if is_optional else 'bg-success'
