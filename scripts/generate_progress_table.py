@@ -11,7 +11,7 @@ def read_task_definitions(file_path):
             # Strip whitespace from task name and all other fields
             task_name = row['Task Name'].strip()
             # Parse the due date and explicitly set it to Singapore timezone
-            due_date = datetime.strptime(row['Due Date'].strip(), '%Y-%m-%d %H:%M')
+            due_date = datetime.strptime(row['Due Date'].strip(), '%m/%d/%Y %H:%M')
             due_date = pytz.timezone('Asia/Singapore').localize(due_date)
             tasks[task_name] = {
                 'type': row['Task Type'].strip(),
