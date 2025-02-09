@@ -10,10 +10,13 @@ def read_task_definitions(file_path):
         for row in reader:
             # Strip whitespace from task name and all other fields
             task_name = row['Task Name'].strip()
+            # Parse the due date and explicitly set it to Singapore timezone
+            due_date = datetime.strptime(row['Due Date'].strip(), '%Y-%m-%d %H:%M')
+            due_date = pytz.timezone('Asia/Singapore').localize(due_date)
             tasks[task_name] = {
                 'type': row['Task Type'].strip(),
                 'is_optional': row['Is Optional'].strip().lower() == 'true',
-                'due_date': datetime.strptime(row['Due Date'].strip(), '%Y-%m-%d %H:%M'),
+                'due_date': due_date,
                 'week_number': int(row['Week Number'].strip())
             }
     return tasks
@@ -30,7 +33,7 @@ def read_student_progress(file_path):
 
 def should_show_task(task_info):
     now = datetime.now(pytz.timezone('Asia/Singapore'))
-    due_date = task_info['due_date'].replace(tzinfo=pytz.timezone('Asia/Singapore'))
+    due_date = task_info['due_date']  # Already in Singapore timezone
     
     # Show tasks that are:
     # 1. Due before today (past tasks)
@@ -39,7 +42,7 @@ def should_show_task(task_info):
 
 def get_badge_html(task_name, is_completed, task_info):
     now = datetime.now(pytz.timezone('Asia/Singapore'))
-    due_date = task_info['due_date'].replace(tzinfo=pytz.timezone('Asia/Singapore'))
+    due_date = task_info['due_date']  # Already in Singapore timezone
     is_overdue = now > due_date
     is_optional = task_info['is_optional']
     
