@@ -28,6 +28,7 @@ A-CheckStyle,Increment,TRUE,2/14/2025 23:59,5
 Level-10,Increment,FALSE,2/14/2025 23:59,5
 A-Varargs,Increment,TRUE,2/14/2025 23:59,5
 A-UnitTesting,Increment,FALSE,2/14/2025 23:59,5
+A-FullCommitMessage,Increment,TRUE,2/21/2025 23:59,6
 A-Assertions,Increment,FALSE,2/21/2025 23:59,6
 A-CodeQuality,Increment,FALSE,2/21/2025 23:59,6
 A-Streams,Increment,TRUE,2/21/2025 23:59,6
